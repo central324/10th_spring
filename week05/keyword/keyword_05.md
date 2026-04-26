@@ -1,4 +1,4 @@
-## 1. 빌더 패턴이란 ?
+# 1. 빌더 패턴이란 ?
 
 빌더 패턴(Builder Pattern)은 복잡한 객체의 생성 과정과 표현 방법을 분리하여, 동일한 생성 절차에서 서로 다른 표현 결과를 만들 수 있게 하는 디자인 패턴입니다.
 
@@ -47,7 +47,7 @@ User user = User.builder()
 
 
 
-## 2. record vs static class
+# 2. record vs static class
 
 ## **1. Record**
 
@@ -97,7 +97,7 @@ public class Outer {
 | **구현 편의성** | 컴파일러가 자동 생성 | 개발자가 직접 작성 |
 
 
-## 3. 제네릭이란 ?
+# 3. 제네릭이란 ?
 
 ## **1. 제네릭 (Generic) 이란?**
 
@@ -145,4 +145,94 @@ String name = nameBox.get(); // 별도의 형변환이 필요 없음
 - **타입 파라미터 (Type Parameter):** `<T>` (Type), `<E>` (Element), `<K>` (Key), `<V>` (Value) 등 관례적으로 사용하는 기호입니다.
 - **와일드카드 (Wildcard):** `<?>`를 사용하여 타입을 정확히 모를 때나, 상속 관계를 고려한 타입 제한(`<? extends T>`, `<? super T>`)이 필요할 때 사용합니다.
 - **타입 소거 (Type Erasure):** 하위 호환성을 위해 컴파일 시점에 제네릭 정보를 제거하고 원시 타입(Object)으로 변환하는 과정을 의미합니다.
-- @RestControllerAdvice이란?
+
+
+# 4. @RestControllerAdvice이란?
+
+**@RestControllerAdvice**는 Spring 프레임워크에서 **전역적으로 예외를 처리**하기 위해 사용하는 어노테이션입니다.
+
+- **역할:** 여러 컨트롤러(@RestController)에서 발생하는 예외를 한곳에서 잡아 처리하는 **중앙 집중식 예외 처리기**입니다.
+- **구성:** `@ControllerAdvice`와 `@ResponseBody`가 합쳐진 형태입니다. 즉, 예외 처리 결과를 JSON과 같은 데이터 형태로 직접 반환할 때 사용합니다.
+
+---
+
+## **왜 사용하는가? (장점)**
+
+- **코드 중복 제거:** 모든 컨트롤러마다 `try-catch`문을 넣지 않아도 되어 코드가 깔끔해집니다.
+- **관심사의 분리 (Separation of Concerns):** 비즈니스 로직과 예외 처리 로직을 완전히 분리할 수 있습니다.
+- **일관된 응답 구조:** 에러 발생 시 사용자에게 항상 동일한 형식의 에러 응답(JSON)을 내려줄 수 있어 프론트엔드와의 협업이 쉬워집니다.
+
+---
+
+## **코드 예시**
+
+```java
+@RestControllerAdvice
+public class GlobalExceptionHandler {
+
+    // 특정 예외(ex: IllegalArgumentException)를 잡아 처리합니다.
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<String> handleIllegalArgumentException(IllegalArgumentException e) {
+        // 에러 메세지와 함께 400 Bad Request 상태 코드를 반환합니다.
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+    }
+
+    // 모든 예외를 통칭하여 처리할 수도 있습니다.
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<String> handleAllExceptions(Exception e) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("서버 내부 오류가 발생했습니다.");
+    }
+}
+```
+
+---
+
+## **핵심 키워드 정리**
+
+- **@ExceptionHandler:** 특정 예외 클래스를 지정하여 해당 예외가 발생했을 때 실행할 메서드를 정의합니다.
+- **@ResponseStatus:** HTTP 응답 상태 코드를 설정합니다.
+- **ResponseEntity:** 에러 응답 바디와 상태 코드를 더 세밀하게 제어하고 싶을 때 반환 타입으로 사용합니다.
+
+
+# 5. Optional이란?
+
+## **1. Optional이란?**
+
+- Optional는 '값이 존재할 수도 있고, 없을 수도 있는' 객체를 감싸는 래퍼 클래스(Wrapper Class) 입니다.
+- **핵심 목적:** 값이 `null`일 수 있는 상황에서 직접 `null`을 반환하는 대신, Optional 객체에 담아 반환함으로써 **NullPointerException(NPE)** 발생 가능성을 원천적으로 줄이는 것입니다.
+- **비유:** 값이 들어있을 수도, 비어있을 수도 있는 **상자**라고 생각하시면 이해가 쉽습니다.
+
+---
+
+## **2. 왜 사용하는가? (장점)**
+
+- **NPE 방지:** `null` 체크를 위해 `if (obj != null)`와 같은 코드를 반복해서 쓰지 않아도 됩니다.
+- **가독성 향상:** 메서드의 반환 타입이 `Optional`이라면, 개발자는 "아, 이 메서드는 결과가 없을 수도 있겠구나"라고 명확히 인지하고 대비할 수 있습니다.
+- **함수형 프로그래밍:** `map`, `filter`, `ifPresent` 등을 활용하여 간결한 연쇄 호출이 가능해집니다.
+
+---
+
+## **3. 코드 예시**
+
+```java
+// 1. Optional 객체 생성
+Optional<String> opt = Optional.ofNullable(getName()); // null일 수도 있는 값을 감싸기
+
+// 2. 값이 있을 때만 실행
+opt.ifPresent(name -> System.out.println("이름: " + name));
+
+// 3. 값이 없으면 기본값 반환 (orElse)
+String finalName = opt.orElse("이름 없음");
+
+// 4. 값이 없으면 예외 던지기 (orElseThrow)
+String validName = opt.orElseThrow(() -> new IllegalArgumentException("값이 없습니다."));
+```
+
+---
+
+## **4. 핵심 메서드 정리**
+
+- **`Optional.of(value)`:** 값이 확실히 `null`이 아닐 때 사용 (null이면 NPE 발생).
+- **`Optional.ofNullable(value)`:** 값의 `null` 여부를 모를 때 사용.
+- **`isPresent()`:** 값이 들어있는지 확인 (비어있으면 false).
+- **`get()`:** 값을 직접 꺼냄 (비어있으면 예외가 발생하므로 주의해서 사용).
